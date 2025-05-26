@@ -282,8 +282,10 @@ async function closeMatch(match, winner) {
 function listenMatches() {
   const q = query(collection(db, 'matches'), orderBy('team1'));
   return onSnapshot(q, snapshot => {
-    const matches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderMatches(matches);
+    const openMatches = snapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(m => m.status === 'open'); // <-- filtrage des matchs ouverts ici
+    renderMatches(openMatches);
   });
 }
 
@@ -327,7 +329,6 @@ function listenHistoryMatches() {
   });
 }
 
-// Version simplifiée pour que l'affichage de l'historique ressemble aux autres listes
 function renderHistory(matches) {
   historyList.innerHTML = '';
   matches.forEach(match => {
@@ -356,19 +357,15 @@ onAuthStateChanged(auth, user => {
   currentUser = user;
   if (user) {
     authDiv.style.display = 'none';
-    matchesSection.style.display = 'block';
-    profileSection.style.display = 'none';
-    rankingSection.style.display = 'none';
-    historySection.style.display = 'none';
-
+    showSection(matchesSection);
     listenUserData(user.uid);
     listenMatches();
-    updateRanking();
   } else {
     authDiv.style.display = 'block';
     matchesSection.style.display = 'none';
     profileSection.style.display = 'none';
     rankingSection.style.display = 'none';
     historySection.style.display = 'none';
+    currentUserData = null;
   }
 });
