@@ -327,53 +327,30 @@ function listenHistoryMatches() {
   });
 }
 
+// Version simplifiée pour que l'affichage de l'historique ressemble aux autres listes
 function renderHistory(matches) {
   historyList.innerHTML = '';
   matches.forEach(match => {
     const li = document.createElement('li');
-    li.style.border = '1px solid #ccc';
-    li.style.padding = '8px';
-    li.style.marginBottom = '8px';
-    li.style.borderRadius = '5px';
-    li.style.backgroundColor = '#f9f9f9';
 
-    // Limite la largeur pour éviter que ça prenne toute la place
-    li.style.maxWidth = '450px';
-    li.style.wordWrap = 'break-word';
+    let text = `${match.team1} vs ${match.team2} - Gagnant : ${match.winner}`;
 
-    const matchInfo = document.createElement('div');
-    matchInfo.style.fontWeight = 'bold';
-    matchInfo.textContent = `${match.team1} vs ${match.team2}`;
-
-    const winnerInfo = document.createElement('div');
-    winnerInfo.innerHTML = `Gagnant : <em>${match.winner}</em>`;
-
-    // Trouve le pari de l'utilisateur
     const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
-
-    const resultDiv = document.createElement('div');
     if (userBet) {
       if (userBet.prediction === match.winner) {
         const gain = userBet.stake * match.odds;
-        resultDiv.textContent = `Gain : +${gain.toFixed(2)} points`;
-        resultDiv.style.color = 'green';
+        text += ` (Gain : +${gain.toFixed(2)} pts)`;
       } else {
-        resultDiv.textContent = `Perte : -${userBet.stake} points`;
-        resultDiv.style.color = 'red';
+        text += ` (Perte : -${userBet.stake} pts)`;
       }
     } else {
-      resultDiv.textContent = 'Pas parié';
-      resultDiv.style.color = 'gray';
+      text += ' (Pas parié)';
     }
 
-    li.appendChild(matchInfo);
-    li.appendChild(winnerInfo);
-    li.appendChild(resultDiv);
+    li.textContent = text;
     historyList.appendChild(li);
   });
 }
-
-
 
 onAuthStateChanged(auth, user => {
   currentUser = user;
