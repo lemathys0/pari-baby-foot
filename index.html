@@ -7,45 +7,57 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🏆 Pari Baby-Foot</h1>
+  <header>
+    <h1>🏆 Pari Baby-Foot</h1>
+    <nav>
+      <button id="menuMatchesBtn" class="nav-btn active">Matchs</button>
+      <button id="menuProfileBtn" class="nav-btn">Profil</button>
+      <button id="menuLeaderboardBtn" class="nav-btn">Classement</button>
+      <button id="menuHistoryBtn" class="nav-btn">Historique</button>
+      <button id="logoutBtn" style="display:none;" class="nav-btn logout-btn">Déconnexion</button>
+    </nav>
+  </header>
 
-  <nav>
-    <button id="menuMatchesBtn">Matchs</button>
-    <button id="menuProfileBtn">Profil</button>
-    <button id="menuLeaderboardBtn">Classement</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </nav>
+  <main>
+    <section id="auth" class="card">
+      <input type="email" id="email" placeholder="Email" autocomplete="username" />
+      <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" />
+      <div class="btn-group">
+        <button id="registerBtn" class="btn primary">S'inscrire</button>
+        <button id="loginBtn" class="btn secondary">Connexion</button>
+      </div>
+    </section>
 
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Mot de passe" />
-    <button id="registerBtn">S'inscrire</button>
-    <button id="loginBtn">Connexion</button>
-  </div>
+    <section id="matches-section" class="card" style="display:none;">
+      <h2>Pariez sur les matchs disponibles</h2>
+      <ul id="matches-list" class="list"></ul>
 
-  <section id="matches-section" style="display:none;">
-    <h2>Pariez sur les matchs disponibles</h2>
-    <ul id="matches-list"></ul>
+      <div id="addMatchDiv" style="display:none;" class="card admin-panel">
+        <hr />
+        <h3>Ajouter un match (admin)</h3>
+        <input type="text" id="team1" placeholder="Équipe 1" />
+        <input type="text" id="team2" placeholder="Équipe 2" />
+        <input type="number" id="odds" placeholder="Cote (ex: 1.5)" min="1" step="0.1" />
+        <button id="addMatchBtn" class="btn primary">Ajouter Match</button>
+      </div>
+    </section>
 
-    <div id="admin-section" style="display:none;">
-      <hr />
-      <h3>Ajouter un match (admin)</h3>
-      <input type="text" id="team1" placeholder="Équipe 1" />
-      <input type="text" id="team2" placeholder="Équipe 2" />
-      <button id="addMatchBtn">Ajouter Match</button>
-    </div>
-  </section>
+    <section id="profile-section" class="card" style="display:none;">
+      <h2>Profil</h2>
+      <p><strong>Email :</strong> <span id="profileEmail"></span></p>
+      <p><strong>Points :</strong> <span id="profilePoints"></span></p>
+    </section>
 
-  <section id="profile-section" style="display:none;">
-    <h2>Profil</h2>
-    <p>Email : <span id="profileEmail"></span></p>
-    <p>Points : <span id="profilePoints"></span></p>
-  </section>
+    <section id="leaderboard-section" class="card" style="display:none;">
+      <h2>Classement des meilleurs joueurs</h2>
+      <ol id="ranking-list" class="list"></ol>
+    </section>
 
-  <section id="leaderboard-section" style="display:none;">
-    <h2>Classement des meilleurs joueurs</h2>
-    <ol id="leaderboardList"></ol>
-  </section>
+    <section id="history-section" class="card" style="display:none;">
+      <h2>Historique des matchs</h2>
+      <ul id="history-list" class="list"></ul>
+    </section>
+  </main>
 
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>
