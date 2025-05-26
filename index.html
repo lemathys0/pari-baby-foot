@@ -8,24 +8,26 @@
 </head>
 <body>
   <h1>🏆 Pari Baby-Foot</h1>
-  
+
   <div id="auth">
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Mot de passe" />
     <button id="registerBtn">S'inscrire</button>
     <button id="loginBtn">Connexion</button>
     <button id="logoutBtn" style="display:none;">Déconnexion</button>
+    <p id="userPoints" style="display:none;">Points: <span id="pointsValue">0</span></p>
   </div>
 
-  <div id="bet-section" style="display:none;">
-    <h2>Parier sur un match</h2>
+  <section id="matches-section" style="display:none;">
+    <h2>Pariez sur les matchs disponibles</h2>
+    <ul id="matches-list"></ul>
+
+    <hr />
+    <h3>Ajouter un match (admin)</h3>
     <input type="text" id="team1" placeholder="Équipe 1" />
     <input type="text" id="team2" placeholder="Équipe 2" />
-    <button id="addMatchBtn">Ajouter un match</button>
-
-    <h3>Matchs disponibles</h3>
-    <ul id="matches-list"></ul>
-  </div>
+    <button id="addMatchBtn">Ajouter Match</button>
+  </section>
 
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>

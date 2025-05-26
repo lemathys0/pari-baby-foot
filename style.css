@@ -1,104 +1,60 @@
-/* style.css */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  color: #333;
   margin: 0;
   padding: 20px;
-  color: #333;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
 }
 
 h1 {
-  color: #FF6F61;
-  margin-bottom: 20px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
 }
 
-#auth, #bet-section {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-  padding: 25px 40px;
-  width: 350px;
-  margin-bottom: 30px;
-}
-
-input[type="email"],
-input[type="password"],
-input[type="text"],
-input[type="number"] {
+input, select, button {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+  border: none;
+  font-size: 1em;
   width: 100%;
-  padding: 10px 12px;
-  margin: 8px 0 15px 0;
-  border-radius: 8px;
-  border: 1.5px solid #FF6F61;
-  font-size: 16px;
-  transition: border-color 0.3s;
-}
-
-input[type="email"]:focus,
-input[type="password"]:focus,
-input[type="text"]:focus,
-input[type="number"]:focus {
-  outline: none;
-  border-color: #FF3B2F;
-  box-shadow: 0 0 8px #FF3B2F88;
+  max-width: 300px;
+  box-sizing: border-box;
 }
 
 button {
-  width: 100%;
-  background-color: #FF6F61;
+  background-color: #ff6f61;
   color: white;
-  border: none;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 5px;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #FF3B2F;
+  background-color: #ff3b2d;
 }
 
-#logoutBtn {
-  background-color: #555;
+#matches-list li {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
-#logoutBtn:hover {
-  background-color: #222;
+.bet-item {
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #555;
 }
 
-h2, h3 {
-  color: #FF3B2F;
-  margin-bottom: 10px;
-  text-align: center;
+.admin-btn {
+  background-color: #4caf50;
+  margin-left: 10px;
+  font-size: 0.85em;
+  padding: 6px 12px;
+  border-radius: 5px;
 }
-
-#bet-history {
-  list-style: none;
-  padding-left: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  border-top: 2px solid #FF6F61;
-  margin-top: 15px;
-}
-
-#bet-history li {
-  background: #FFE1DC;
-  margin-bottom: 8px;
-  padding: 10px;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #6B1B11;
-}
-
-@media (max-width: 400px) {
-  #auth, #bet-section {
-    width: 90vw;
-    padding: 15px 20px;
-  }
+.admin-btn:hover {
+  background-color: #388e3c;
 }

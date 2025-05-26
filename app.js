@@ -1,4 +1,8 @@
-import { auth, db } from './firebase-config.js';
+import {
+  auth,
+  db
+} from './firebase-config.js';
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,158 +14,267 @@ import {
   collection,
   addDoc,
   onSnapshot,
-  updateDoc,
   doc,
+  setDoc,
+  updateDoc,
+  getDoc,
   arrayUnion,
-  getDocs
+  query,
+  where
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// --- Auth elements ---
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const registerBtn = document.getElementById('registerBtn');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
-const authDiv = document.getElementById('auth');
 
-// --- Bet elements ---
-const betSection = document.getElementById('bet-section');
+const userPointsDisplay = document.getElementById('userPoints');
+const pointsValue = document.getElementById('pointsValue');
+
+const matchesSection = document.getElementById('matches-section');
+const matchesList = document.getElementById('matches-list');
+const addMatchBtn = document.getElementById('addMatchBtn');
 const team1Input = document.getElementById('team1');
 const team2Input = document.getElementById('team2');
-const addMatchBtn = document.getElementById('addMatchBtn');
-const matchesList = document.getElementById('matches-list');
 
 let currentUser = null;
+let currentUserData = null;
 
-// Inscription, Connexion, Déconnexion (comme avant)...
-// Je peux te remettre si besoin mais tu as déjà le code plus haut
+// Remplace par l'UID de l'admin de ton projet Firebase
+const ADMIN_UID = 'TON_UID_ADMIN_ICI';
 
-registerBtn.addEventListener('click', async () => {
+// Inscription
+registerBtn.onclick = async () => {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
-  if (!email || !password || password.length < 6) return alert("Email et mot de passe (6+) requis");
-  try {
-    await createUserWithEmailAndPassword(auth, email, password);
-    alert("Inscription réussie");
-  } catch (e) { alert("Erreur: "+e.message); }
-});
 
-loginBtn.addEventListener('click', async () => {
+  if (!email || !password) return alert('Email et mot de passe requis');
+  if (password.length < 6) return alert('Mot de passe doit faire au moins 6 caractères');
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    currentUser = userCredential.user;
+
+    // Créer profil utilisateur dans Firestore avec 50 points initiaux
+    await setDoc(doc(db, 'users', currentUser.uid), {
+      email,
+      points: 50,
+      isAdmin: false
+    });
+
+    alert("Inscription réussie, tu as 50 points !");
+    emailInput.value = '';
+    passwordInput.value = '';
+  } catch (error) {
+    alert("Erreur inscription : " + error.message);
+  }
+};
+
+// Connexion
+loginBtn.onclick = async () => {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
-  if (!email || !password) return alert("Email et mot de passe requis");
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    alert("Connexion réussie");
-  } catch (e) { alert("Erreur: "+e.message); }
-});
 
-logoutBtn.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-    alert("Déconnecté");
-  } catch (e) { alert("Erreur: "+e.message); }
-});
+  if (!email || !password) return alert('Email et mot de passe requis');
 
-// Écoute la connexion/déconnexion
-onAuthStateChanged(auth, user => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    currentUser = userCredential.user;
+    emailInput.value = '';
+    passwordInput.value = '';
+  } catch (error) {
+    alert("Erreur connexion : " + error.message);
+  }
+};
+
+// Déconnexion
+logoutBtn.onclick = async () => {
+  await signOut(auth);
+};
+
+// Sur changement d’authentification
+onAuthStateChanged(auth, async user => {
   currentUser = user;
   if (user) {
-    authDiv.style.display = 'none';
-    betSection.style.display = 'block';
-    startListeningMatches();
+    // Récupérer données user Firestore
+    const docSnap = await getDoc(doc(db, 'users', user.uid));
+    currentUserData = docSnap.exists() ? docSnap.data() : null;
+
+    loginBtn.style.display = 'none';
+    registerBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+    userPointsDisplay.style.display = 'block';
+    pointsValue.textContent = currentUserData?.points ?? 0;
+    matchesSection.style.display = 'block';
+
+    listenMatches();
   } else {
-    authDiv.style.display = 'block';
-    betSection.style.display = 'none';
-    stopListeningMatches();
+    loginBtn.style.display = 'inline-block';
+    registerBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+    userPointsDisplay.style.display = 'none';
+    matchesSection.style.display = 'none';
+    matchesList.innerHTML = '';
+    currentUserData = null;
   }
 });
 
-let unsubscribeMatches = null;
+// Ajouter un match (admin)
+addMatchBtn.onclick = async () => {
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    return alert("Seul l'admin peut ajouter un match.");
+  }
 
-function startListeningMatches() {
-  const matchesCol = collection(db, 'matches');
-  unsubscribeMatches = onSnapshot(matchesCol, (snapshot) => {
-    matchesList.innerHTML = ''; // reset
-    snapshot.forEach(docSnap => {
-      const match = docSnap.data();
-      const id = docSnap.id;
-      const li = document.createElement('li');
-      li.style.border = '1px solid #FF6F61';
-      li.style.borderRadius = '10px';
-      li.style.padding = '10px';
-      li.style.marginBottom = '10px';
-
-      let betsHtml = '<ul>';
-      if(match.bets && match.bets.length) {
-        for(const bet of match.bets) {
-          betsHtml += `<li>${bet.prediction} — ${bet.stake} points</li>`;
-        }
-      } else {
-        betsHtml += '<li>Aucun pari</li>';
-      }
-      betsHtml += '</ul>';
-
-      li.innerHTML = `
-        <strong>${match.team1} vs ${match.team2}</strong>
-        ${betsHtml}
-        <input type="text" placeholder="Ton pari (équipe gagnante)" id="prediction-${id}" />
-        <input type="number" placeholder="Points" min="1" id="stake-${id}" />
-        <button id="betBtn-${id}">Parier</button>
-      `;
-
-      matchesList.appendChild(li);
-
-      document.getElementById(`betBtn-${id}`).onclick = async () => {
-        const prediction = document.getElementById(`prediction-${id}`).value.trim();
-        const stake = parseInt(document.getElementById(`stake-${id}`).value, 10);
-        if (!prediction) return alert("Entre ton pari");
-        if (!stake || stake <= 0) return alert("Entre un nombre de points valide");
-        if (!currentUser) return alert("Tu dois être connecté");
-
-        try {
-          const matchRef = doc(db, 'matches', id);
-          await updateDoc(matchRef, {
-            bets: arrayUnion({
-              userId: currentUser.uid,
-              prediction,
-              stake
-            })
-          });
-          alert('Pari placé !');
-          // Nettoyer les champs
-          document.getElementById(`prediction-${id}`).value = '';
-          document.getElementById(`stake-${id}`).value = '';
-        } catch (e) {
-          alert('Erreur lors du pari : ' + e.message);
-          console.error(e);
-        }
-      };
-    });
-  });
-}
-
-function stopListeningMatches() {
-  if (unsubscribeMatches) unsubscribeMatches();
-}
-
-// Ajouter un match
-addMatchBtn.addEventListener('click', async () => {
   const team1 = team1Input.value.trim();
   const team2 = team2Input.value.trim();
 
-  if (!team1 || !team2) return alert('Entrez les deux équipes');
+  if (!team1 || !team2) return alert('Les deux équipes sont requises');
 
   try {
     await addDoc(collection(db, 'matches'), {
       team1,
       team2,
-      bets: []
+      bets: [],
+      closed: false,
+      winner: null,
+      createdAt: new Date()
     });
-    alert('Match ajouté !');
+
     team1Input.value = '';
     team2Input.value = '';
-  } catch (e) {
-    alert('Erreur ajout match : ' + e.message);
+  } catch (error) {
+    alert('Erreur ajout match : ' + error.message);
   }
-});
+};
+
+// Écoute les matchs en temps réel
+function listenMatches() {
+  const q = query(collection(db, 'matches'));
+  onSnapshot(q, snapshot => {
+    matchesList.innerHTML = '';
+
+    snapshot.forEach(docSnap => {
+      const match = docSnap.data();
+      const id = docSnap.id;
+
+      const li = document.createElement('li');
+
+      let betsHtml = '';
+      if (match.bets?.length > 0) {
+        betsHtml = '<div class="bet-item"><strong>Paris:</strong><ul>';
+        match.bets.forEach(bet => {
+          betsHtml += `<li>${bet.prediction} - ${bet.stake} pts</li>`;
+        });
+        betsHtml += '</ul></div>';
+      }
+
+      // Si match clôturé, afficher résultat
+      if(match.closed){
+        li.innerHTML = `
+          <strong>${match.team1} vs ${match.team2}</strong> - <em>Match terminé, gagnant : ${match.winner}</em>
+          ${betsHtml}
+        `;
+      } else {
+        // Match ouvert: afficher formulaire pari
+
+        li.innerHTML = `
+          <strong>${match.team1} vs ${match.team2}</strong>
+          ${betsHtml}
+          <select id="prediction-${id}">
+            <option value="" disabled selected>Choisis l'équipe gagnante</option>
+            <option value="${match.team1}">${match.team1}</option>
+            <option value="${match.team2}">${match.team2}</option>
+          </select>
+          <input type="number" id="stake-${id}" placeholder="Points à miser" min="1" max="${currentUserData.points}" />
+          <button id="betBtn-${id}">Parier</button>
+        `;
+
+        // Parier
+        document.getElementById(`betBtn-${id}`).onclick = async () => {
+          if (!currentUser) return alert("Connecte-toi d'abord");
+
+          const predictionEl = document.getElementById(`prediction-${id}`);
+          const stakeEl = document.getElementById(`stake-${id}`);
+
+          const prediction = predictionEl.value;
+          const stake = parseInt(stakeEl.value, 10);
+
+          if (!prediction) return alert("Choisis une équipe");
+          if (!stake || stake <= 0) return alert("Points invalides");
+          if (stake > currentUserData.points) return alert("Tu n'as pas assez de points");
+
+          try {
+            // Deduct points user
+            await updateDoc(doc(db, 'users', currentUser.uid), {
+              points: currentUserData.points - stake
+            });
+
+            // Update local user data points
+            currentUserData.points -= stake;
+            pointsValue.textContent = currentUserData.points;
+
+            // Add bet to match
+            await updateDoc(doc(db, 'matches', id), {
+              bets: arrayUnion({
+                userId: currentUser.uid,
+                prediction,
+                stake
+              })
+            });
+
+            alert("Pari placé !");
+            predictionEl.value = '';
+            stakeEl.value = '';
+          } catch (e) {
+            alert("Erreur pari : " + e.message);
+          }
+        };
+      }
+
+      // Si admin, bouton clôturer match ouvert
+      if(currentUser?.uid === ADMIN_UID && !match.closed){
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'Clôturer';
+        closeBtn.className = 'admin-btn';
+        closeBtn.onclick = async () => {
+          const winner = prompt(`Qui a gagné ? (${match.team1} ou ${match.team2})`);
+          if(winner !== match.team1 && winner !== match.team2) return alert("Choix invalide");
+
+          try {
+            await updateDoc(doc(db, 'matches', id), {
+              winner,
+              closed: true
+            });
+
+            // Distribuer les gains
+            if(match.bets?.length){
+              for(const bet of match.bets){
+                if(bet.prediction === winner){
+                  const userRef = doc(db, 'users', bet.userId);
+                  const userSnap = await getDoc(userRef);
+                  if(userSnap.exists()){
+                    const data = userSnap.data();
+                    await updateDoc(userRef, {
+                      points: (data.points || 0) + bet.stake * 2 // double la mise gagnée
+                    });
+
+                    // Si l'admin clôture plusieurs matchs, pour rester à jour dans l'UI, 
+                    // il faudra reload ou re-fetch les points. Ici, pour la simplicité, on ne le fait pas.
+                  }
+                }
+              }
+            }
+
+            alert("Match clôturé et points distribués !");
+          } catch (e) {
+            alert("Erreur clôture match : " + e.message);
+          }
+        };
+        li.appendChild(closeBtn);
+      }
+
+      matchesList.appendChild(li);
+    });
+  });
+}
