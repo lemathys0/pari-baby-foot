@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
   signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
 import {
   collection,
   addDoc,
@@ -14,6 +15,7 @@ import {
   setDoc,
   onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
 import { auth, db } from './firebase-config.js';
 
 const emailInput = document.getElementById('email');
@@ -25,25 +27,29 @@ const authDiv = document.getElementById('auth');
 
 const team1Input = document.getElementById('team1');
 const team2Input = document.getElementById('team2');
-const predictionInput = document.getElementById('prediction');
-const stakeInput = document.getElementById('stake');
-const placeBetBtn = document.getElementById('placeBetBtn');
-const matchesList = document.getElementById('bet-history');
-const matchesSection = document.getElementById('bet-section');
+const addMatchBtn = document.getElementById('addMatchBtn');
+const matchesList = document.getElementById('matches-list');
+const matchesSection = document.getElementById('matches-section');
 const userPointsDisplay = document.getElementById('userPoints');
 const pointsValue = document.getElementById('pointsValue');
 
 let currentUser = null;
 let currentUserData = null;
 
+// Enregistrement
 registerBtn.addEventListener('click', async () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!email || !password || password.length < 6) {
+    alert("Email invalide ou mot de passe trop court (min. 6 caractères).");
+    return;
+  }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // Vérifie si c'est le premier utilisateur
     const usersSnapshot = await getDocs(collection(db, 'users'));
     const isFirstUser = usersSnapshot.empty;
 
@@ -59,6 +65,7 @@ registerBtn.addEventListener('click', async () => {
   }
 });
 
+// Connexion
 loginBtn.addEventListener('click', async () => {
   try {
     await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
@@ -67,45 +74,33 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
+// Déconnexion
 logoutBtn.addEventListener('click', () => {
   signOut(auth);
 });
 
-placeBetBtn.addEventListener('click', async () => {
-  if (!currentUser) return;
-
+// Ajouter un match (admin)
+addMatchBtn.addEventListener('click', async () => {
   const team1 = team1Input.value.trim();
   const team2 = team2Input.value.trim();
-  const prediction = predictionInput.value.trim();
-  const stake = parseInt(stakeInput.value.trim());
 
-  if (!team1 || !team2 || !prediction || isNaN(stake)) {
-    alert('Remplis tous les champs.');
+  if (!team1 || !team2) {
+    alert('Remplis les deux équipes');
     return;
   }
 
-  if (currentUserData.points < stake) {
-    alert("Tu n'as pas assez de points !");
-    return;
-  }
-
-  const match = {
+  await addDoc(collection(db, 'matches'), {
     team1,
     team2,
     status: 'open',
-    bets: [{
-      userId: currentUser.uid,
-      prediction,
-      stake
-    }]
-  };
-
-  await addDoc(collection(db, 'matches'), match);
-  await updateDoc(doc(db, 'users', currentUser.uid), {
-    points: currentUserData.points - stake
+    bets: []
   });
+
+  team1Input.value = '';
+  team2Input.value = '';
 });
 
+// Affichage des matchs
 function renderMatches(matches) {
   matchesList.innerHTML = '';
 
@@ -126,16 +121,18 @@ function renderMatches(matches) {
       const inputStake = document.createElement('input');
       inputStake.type = 'number';
       inputStake.placeholder = 'Points';
+
       const submitBtn = document.createElement('button');
       submitBtn.textContent = 'Parier';
       submitBtn.onclick = async () => {
         const prediction = select.value;
         const stake = parseInt(inputStake.value);
-        if (isNaN(stake) || stake <= 0) return;
 
-        await updateDoc(doc(db, 'users', currentUser.uid), {
-          points: currentUserData.points - stake
-        });
+        if (isNaN(stake) || stake <= 0) return;
+        if (currentUserData.points < stake) {
+          alert("Tu n'as pas assez de points !");
+          return;
+        }
 
         const updatedBets = [...(match.bets || []), {
           userId: currentUser.uid,
@@ -143,12 +140,20 @@ function renderMatches(matches) {
           stake
         }];
 
-        await updateDoc(doc(db, 'matches', match.id), { bets: updatedBets });
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          points: currentUserData.points - stake
+        });
+
+        await updateDoc(doc(db, 'matches', match.id), {
+          bets: updatedBets
+        });
       };
+
       betForm.append(select, inputStake, submitBtn);
       li.append(betForm);
     }
 
+    // Admin : Clôture
     if (match.status === 'open' && currentUserData?.isAdmin) {
       const closeBtn = document.createElement('button');
       closeBtn.textContent = 'Clôturer ce pari';
@@ -165,17 +170,20 @@ function renderMatches(matches) {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const data = userSnap.data();
-            await updateDoc(userRef, { points: data.points + w.stake * 2 });
+            await updateDoc(userRef, {
+              points: data.points + w.stake * 2
+            });
           }
         }
       };
-      li.appendChild(closeBtn);
+      li.append(closeBtn);
     }
 
     matchesList.appendChild(li);
   });
 }
 
+// Écoute en temps réel
 function listenMatches() {
   onSnapshot(collection(db, 'matches'), snapshot => {
     const matches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -183,8 +191,10 @@ function listenMatches() {
   });
 }
 
+// Auth state
 onAuthStateChanged(auth, async user => {
   currentUser = user;
+
   if (user) {
     const docSnap = await getDoc(doc(db, 'users', user.uid));
     currentUserData = docSnap.exists() ? docSnap.data() : null;
