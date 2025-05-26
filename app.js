@@ -52,19 +52,15 @@ let currentUser = null;
 let currentUserData = null;
 
 function showSection(section) {
-  // Cacher toutes les sections
   matchesSection.style.display = 'none';
   profileSection.style.display = 'none';
   rankingSection.style.display = 'none';
   historySection.style.display = 'none';
 
-  // Supprimer la classe active de tous les boutons
   [menuMatchesBtn, menuProfileBtn, menuLeaderboardBtn, menuHistoryBtn].forEach(btn => btn.classList.remove('active'));
 
-  // Afficher la section demandée
   section.style.display = 'block';
 
-  // Ajouter la classe active au bouton correspondant
   if (section === matchesSection) menuMatchesBtn.classList.add('active');
   else if (section === profileSection) menuProfileBtn.classList.add('active');
   else if (section === rankingSection) menuLeaderboardBtn.classList.add('active');
@@ -125,14 +121,8 @@ addMatchBtn.addEventListener('click', async () => {
   const team1 = team1Input.value.trim();
   const team2 = team2Input.value.trim();
   const odds = parseFloat(oddsInput.value);
-
-  if (!team1 || !team2) {
-    alert("Merci de renseigner deux équipes.");
-    return;
-  }
-
-  if (isNaN(odds) || odds < 1) {
-    alert("Merci de renseigner une cote valide (nombre supérieur ou égal à 1).");
+  if (!team1 || !team2 || !odds || odds < 1) {
+    alert("Merci de renseigner deux équipes et une cote valide (>= 1).");
     return;
   }
 
@@ -157,7 +147,6 @@ function renderMatches(matches) {
   matches.forEach(match => {
     const li = document.createElement('li');
 
-    // Sécuriser l'affichage de la cote
     const oddsText = (typeof match.odds === 'number' && !isNaN(match.odds)) ? match.odds.toFixed(2) : 'N/A';
 
     li.innerHTML = `
@@ -168,33 +157,47 @@ function renderMatches(matches) {
     `;
 
     if (match.status === 'open') {
-      const select = document.createElement('select');
-      select.innerHTML = `
-        <option value="${match.team1}">${match.team1}</option>
-        <option value="${match.team2}">${match.team2}</option>
-      `;
-      const input = document.createElement('input');
-      input.type = 'number';
-      input.min = '1';
-      input.placeholder = 'Points à parier';
-      input.style.width = '90px';
+      // Trouver le pari de l'utilisateur pour ce match
+      const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
 
-      const btn = document.createElement('button');
-      btn.textContent = 'Parier';
-      btn.onclick = async () => {
-        const stake = parseInt(input.value);
-        const prediction = select.value;
-        if (stake > 0 && currentUserData.points >= stake) {
-          await updateDoc(doc(db, 'users', currentUser.uid), {
-            points: currentUserData.points - stake
-          });
-          const updatedBets = [...(match.bets || []), { userId: currentUser.uid, prediction, stake }];
-          await updateDoc(doc(db, 'matches', match.id), { bets: updatedBets });
-        } else {
-          alert("Points insuffisants ou mise invalide.");
-        }
-      };
-      li.append(select, input, btn);
+      if (userBet) {
+        // Afficher le pari existant et empêcher nouveau pari
+        const betInfo = document.createElement('div');
+        betInfo.textContent = `Vous avez parié ${userBet.stake} points sur ${userBet.prediction}.`;
+        li.appendChild(betInfo);
+      } else {
+        // Formulaire de pari
+        const select = document.createElement('select');
+        select.innerHTML = `
+          <option value="${match.team1}">${match.team1}</option>
+          <option value="${match.team2}">${match.team2}</option>
+        `;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '1';
+        input.placeholder = 'Points à parier';
+        input.style.width = '90px';
+
+        const btn = document.createElement('button');
+        btn.textContent = 'Parier';
+        btn.onclick = async () => {
+          const stake = parseInt(input.value);
+          const prediction = select.value;
+          if (stake > 0 && currentUserData.points >= stake) {
+            await updateDoc(doc(db, 'users', currentUser.uid), {
+              points: currentUserData.points - stake
+            });
+
+            const updatedBets = [...(match.bets || []), { userId: currentUser.uid, prediction, stake }];
+            await updateDoc(doc(db, 'matches', match.id), { bets: updatedBets });
+          } else {
+            alert("Points insuffisants ou mise invalide.");
+          }
+        };
+
+        li.append(select, input, btn);
+      }
     } else {
       li.innerHTML += '<em>Match terminé</em>';
     }
@@ -213,7 +216,6 @@ function renderMatches(matches) {
           winner
         });
 
-        // Récompenser les gagnants
         const winners = (match.bets || []).filter(b => b.prediction === winner);
         for (const w of winners) {
           const userRef = doc(db, 'users', w.userId);
