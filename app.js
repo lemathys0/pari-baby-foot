@@ -157,16 +157,13 @@ function renderMatches(matches) {
     `;
 
     if (match.status === 'open') {
-      // Trouver le pari de l'utilisateur pour ce match
       const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
 
       if (userBet) {
-        // Afficher le pari existant et empêcher nouveau pari
         const betInfo = document.createElement('div');
         betInfo.textContent = `Vous avez parié ${userBet.stake} points sur ${userBet.prediction}.`;
         li.appendChild(betInfo);
       } else {
-        // Formulaire de pari
         const select = document.createElement('select');
         select.innerHTML = `
           <option value="${match.team1}">${match.team1}</option>
@@ -203,36 +200,58 @@ function renderMatches(matches) {
     }
 
     if (match.status === 'open' && currentUserData?.isAdmin) {
-      const closeBtn = document.createElement('button');
-      closeBtn.textContent = 'Clôturer';
-      closeBtn.onclick = async () => {
-        const winner = prompt(`Qui a gagné ? (${match.team1} ou ${match.team2})`);
-        if (![match.team1, match.team2].includes(winner)) {
-          alert("Choix invalide.");
-          return;
-        }
-        await updateDoc(doc(db, 'matches', match.id), {
-          status: 'closed',
-          winner
-        });
+      // Boutons pour choisir le gagnant au lieu d'un prompt
+      const winnerDiv = document.createElement('div');
+      winnerDiv.style.marginTop = '8px';
 
-        const winners = (match.bets || []).filter(b => b.prediction === winner);
-        for (const w of winners) {
-          const userRef = doc(db, 'users', w.userId);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const data = userSnap.data();
-            await updateDoc(userRef, {
-              points: data.points + w.stake * match.odds
-            });
-          }
-        }
-      };
-      li.append(closeBtn);
+      const label = document.createElement('span');
+      label.textContent = 'Clôturer le match, choisir le gagnant : ';
+      winnerDiv.appendChild(label);
+
+      const btnTeam1 = document.createElement('button');
+      btnTeam1.textContent = match.team1;
+      btnTeam1.style.marginRight = '5px';
+      btnTeam1.onclick = () => closeMatch(match, match.team1);
+      winnerDiv.appendChild(btnTeam1);
+
+      const btnTeam2 = document.createElement('button');
+      btnTeam2.textContent = match.team2;
+      btnTeam2.onclick = () => closeMatch(match, match.team2);
+      winnerDiv.appendChild(btnTeam2);
+
+      li.appendChild(winnerDiv);
     }
 
     matchesList.appendChild(li);
   });
+}
+
+async function closeMatch(match, winner) {
+  if (![match.team1, match.team2].includes(winner)) {
+    alert("Choix invalide.");
+    return;
+  }
+  try {
+    await updateDoc(doc(db, 'matches', match.id), {
+      status: 'closed',
+      winner
+    });
+
+    // Récompenser les gagnants
+    const winners = (match.bets || []).filter(b => b.prediction === winner);
+    for (const w of winners) {
+      const userRef = doc(db, 'users', w.userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        await updateDoc(userRef, {
+          points: data.points + w.stake * match.odds
+        });
+      }
+    }
+  } catch (error) {
+    alert("Erreur lors de la clôture : " + error.message);
+  }
 }
 
 function listenMatches() {
@@ -285,10 +304,28 @@ function renderHistory(matches) {
   historyList.innerHTML = '';
   matches.forEach(match => {
     const li = document.createElement('li');
+
+    // Trouver le pari de l'utilisateur sur ce match
+    const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
+    
+    let resultText = '';
+    if (userBet) {
+      if (match.winner === userBet.prediction) {
+        const gain = userBet.stake * match.odds;
+        resultText = ` - Gagné: +${gain.toFixed(2)} pts`;
+      } else {
+        resultText = ` - Perdu: -${userBet.stake} pts`;
+      }
+    } else {
+      resultText = ' - Pas parié';
+    }
+
     li.innerHTML = `
       <div>
-        <strong>${match.team1}</strong> vs <strong>${match.team2}</strong><br />
+        <strong>${match.team1}</strong> vs <strong>${match.team2}</strong>
+        <br />
         <em>Gagnant : ${match.winner}</em>
+        <span>${resultText}</span>
       </div>
     `;
     historyList.appendChild(li);
