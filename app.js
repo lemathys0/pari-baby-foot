@@ -48,6 +48,9 @@ const profilePoints = document.getElementById('profilePoints');
 const rankingList = document.getElementById('ranking-list');
 const historyList = document.getElementById('history-list');
 
+const pseudoInput = document.getElementById('pseudoInput');
+const savePseudoBtn = document.getElementById('savePseudoBtn');
+
 let currentUser = null;
 let currentUserData = null;
 
@@ -139,6 +142,28 @@ addMatchBtn.addEventListener('click', async () => {
     oddsInput.value = '';
   } catch (error) {
     alert("Erreur lors de l'ajout du match : " + error.message);
+  }
+});
+
+savePseudoBtn.addEventListener('click', async () => {
+  if (!currentUser) {
+    alert("Vous devez être connecté pour enregistrer un pseudo.");
+    return;
+  }
+
+  const newPseudo = pseudoInput.value.trim();
+  if (newPseudo.length < 3) {
+    alert("Le pseudo doit contenir au moins 3 caractères.");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), {
+      pseudo: newPseudo
+    });
+    alert("Pseudo sauvegardé !");
+  } catch (error) {
+    alert("Erreur lors de la sauvegarde du pseudo : " + error.message);
   }
 });
 
@@ -268,6 +293,7 @@ function listenUserData(uid) {
     currentUserData = docSnap.data();
     profileEmail.textContent = currentUserData.email;
     profilePoints.textContent = currentUserData.points;
+    pseudoInput.value = currentUserData.pseudo || '';
 
     if (currentUserData.isAdmin) {
       addMatchDiv.style.display = 'block';
@@ -283,8 +309,9 @@ function updateRanking() {
     rankingList.innerHTML = '';
     snapshot.docs.forEach(doc => {
       const user = doc.data();
+      const displayName = user.pseudo ? user.pseudo : user.email;
       const li = document.createElement('li');
-      li.textContent = `${user.email} - ${user.points} pts`;
+      li.textContent = `${displayName} - ${user.points} pts`;
       rankingList.appendChild(li);
     });
   });
@@ -307,50 +334,33 @@ function renderHistory(matches) {
 
     // Trouver le pari de l'utilisateur sur ce match
     const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
-    
-    let resultText = '';
-    if (userBet) {
-      if (match.winner === userBet.prediction) {
-        const gain = userBet.stake * match.odds;
-        resultText = ` - Gagné: +${gain.toFixed(2)} pts`;
-      } else {
-        resultText = ` - Perdu: -${userBet.stake} pts`;
-      }
-    } else {
-      resultText = ' - Pas parié';
-    }
+    const won = userBet && userBet.prediction === match.winner;
 
-    li.innerHTML = `
-      <div>
-        <strong>${match.team1}</strong> vs <strong>${match.team2}</strong>
-        <br />
-        <em>Gagnant : ${match.winner}</em>
-        <span>${resultText}</span>
-      </div>
-    `;
+    li.innerHTML = `<strong>${match.team1}</strong> vs <strong>${match.team2}</strong> - Gagnant : <em>${match.winner}</em>`;
+    if (userBet) {
+      li.innerHTML += `<br>Votre pari : ${userBet.prediction} avec ${userBet.stake} points - ${won ? '<span style="color:green;">Gagné !</span>' : '<span style="color:red;">Perdu</span>'}`;
+    }
     historyList.appendChild(li);
   });
 }
 
 onAuthStateChanged(auth, user => {
+  currentUser = user;
   if (user) {
-    currentUser = user;
     authDiv.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-    showSection(matchesSection);
+    matchesSection.style.display = 'block';
+    profileSection.style.display = 'none';
+    rankingSection.style.display = 'none';
+    historySection.style.display = 'none';
 
     listenUserData(user.uid);
     listenMatches();
+    updateRanking();
   } else {
-    currentUser = null;
-    currentUserData = null;
     authDiv.style.display = 'block';
-    logoutBtn.style.display = 'none';
-    showSection(authDiv);
-    matchesList.innerHTML = '';
-    profileEmail.textContent = '';
-    profilePoints.textContent = '';
-    rankingList.innerHTML = '';
-    historyList.innerHTML = '';
+    matchesSection.style.display = 'none';
+    profileSection.style.display = 'none';
+    rankingSection.style.display = 'none';
+    historySection.style.display = 'none';
   }
 });
