@@ -1,50 +1,74 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Historique des matches</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pari Baby-Foot</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header>
+    <h1>🏆 Pari Baby-Foot</h1>
+    <nav>
+      <button id="menuMatchesBtn" class="nav-btn active">Matchs</button>
+      <button id="menuProfileBtn" class="nav-btn">Profil</button>
+      <button id="menuLeaderboardBtn" class="nav-btn">Classement</button>
+      <button id="menuHistoryBtn" class="nav-btn">Historique</button>
+      <button id="logoutBtn" style="display:none;" class="nav-btn logout-btn">Déconnexion</button>
+    </nav>
+  </header>
 
-<h1>Historique des matches</h1>
+  <main>
+    <section id="auth" class="card">
+      <input type="email" id="email" placeholder="Email" autocomplete="username" />
+      <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" />
+      <div class="btn-group">
+        <button id="registerBtn" class="btn primary">S'inscrire</button>
+        <button id="loginBtn" class="btn secondary">Connexion</button>
+      </div>
+    </section>
 
-<h2>Matchs en cours</h2>
-<ul id="ongoing-list"></ul>
+    <section id="matches-section" class="card" style="display:none;">
+      <h2>Pariez sur les matchs disponibles</h2>
+      <ul id="matches-list" class="list"></ul>
 
-<h2>Matchs terminés</h2>
-<ul id="finished-list"></ul>
+      <div id="addMatchDiv" style="display:none;" class="card admin-panel">
+        <hr />
+        <h3>Ajouter un match (admin)</h3>
+        <input type="text" id="team1" placeholder="Équipe 1" />
+        <input type="text" id="team2" placeholder="Équipe 2" />
+        <input type="number" id="odds" placeholder="Cote (ex: 1.5)" min="1" step="0.1" />
+        <button id="addMatchBtn" class="btn primary">Ajouter Match</button>
+      </div>
+    </section>
 
-<script>
-  // Exemple de données de matches
-  const matches = [
-    { teams: "Équipe A vs Équipe B", score: "1-0", finished: false },
-    { teams: "Équipe C vs Équipe D", score: "2-2", finished: true },
-    { teams: "Équipe E vs Équipe F", score: "0-3", finished: true },
-    { teams: "Équipe G vs Équipe H", score: "1-1", finished: false }
-  ];
+    <section id="profile-section" class="card" style="display:none;">
+      <h2>Profil</h2>
+      <p><strong>Email :</strong> <span id="profileEmail"></span></p>
+      <p><strong>Points :</strong> <span id="profilePoints"></span></p>
 
-  const ongoingList = document.getElementById('ongoing-list');
-  const finishedList = document.getElementById('finished-list');
+      <label for="pseudoInput"><strong>Pseudo :</strong></label>
+      <input type="text" id="pseudoInput" placeholder="Entrez votre pseudo" />
+      <button id="savePseudoBtn" class="btn primary">Sauvegarder le pseudo</button>
+    </section>
 
-  matches.forEach(match => {
-    const li = document.createElement('li');
-    li.textContent = `${match.teams} — Score: ${match.score}`;
-    
-    if (match.finished) {
-      // Ajouter une étiquette "Terminé"
-      const statusSpan = document.createElement('span');
-      statusSpan.textContent = 'Terminé';
-      statusSpan.classList.add('status');
-      li.appendChild(statusSpan);
+    <section id="leaderboard-section" class="card" style="display:none;">
+      <h2>Classement des meilleurs joueurs</h2>
+      <ol id="ranking-list" class="list"></ol>
+    </section>
+
+    <section id="history-section" class="card" style="display:none;">
+      <h2>Historique des matchs</h2>
       
-      finishedList.appendChild(li);
-    } else {
-      ongoingList.appendChild(li);
-    }
-  });
-</script>
+      <h3>Matchs en cours</h3>
+      <ul id="history-ongoing-list" class="list"></ul>
+      
+      <h3>Matchs terminés</h3>
+      <ul id="history-finished-list" class="list"></ul>
+    </section>
+  </main>
 
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
