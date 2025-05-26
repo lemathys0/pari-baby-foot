@@ -28,11 +28,11 @@ const authDiv = document.getElementById('auth');
 
 const matchesSection = document.getElementById('matches-section');
 const profileSection = document.getElementById('profile-section');
-const rankingSection = document.getElementById('ranking-section');
+const rankingSection = document.getElementById('leaderboard-section');
 
-const navMatches = document.getElementById('nav-matches');
-const navProfile = document.getElementById('nav-profile');
-const navRanking = document.getElementById('nav-ranking');
+const navMatches = document.getElementById('menuMatchesBtn');
+const navProfile = document.getElementById('menuProfileBtn');
+const navRanking = document.getElementById('menuLeaderboardBtn');
 
 const team1Input = document.getElementById('team1');
 const team2Input = document.getElementById('team2');
@@ -40,9 +40,9 @@ const addMatchBtn = document.getElementById('addMatchBtn');
 const matchesList = document.getElementById('matches-list');
 const adminSection = document.getElementById('admin-section');
 
-const profileEmail = document.getElementById('profile-email');
-const profilePoints = document.getElementById('profile-points');
-const rankingList = document.getElementById('ranking-list');
+const profileEmail = document.getElementById('profileEmail');
+const profilePoints = document.getElementById('profilePoints');
+const rankingList = document.getElementById('leaderboardList');
 
 let currentUser = null;
 let currentUserData = null;
@@ -102,6 +102,9 @@ addMatchBtn.addEventListener('click', async () => {
     status: 'open',
     bets: []
   });
+
+  team1Input.value = '';
+  team2Input.value = '';
 });
 
 function renderMatches(matches) {
@@ -127,6 +130,8 @@ function renderMatches(matches) {
           });
           const updatedBets = [...(match.bets || []), { userId: currentUser.uid, prediction, stake }];
           await updateDoc(doc(db, 'matches', match.id), { bets: updatedBets });
+        } else {
+          alert("Points insuffisants ou mise invalide.");
         }
       };
       li.append(select, input, btn);
@@ -192,7 +197,10 @@ onAuthStateChanged(auth, async user => {
 
     if (currentUserData?.isAdmin) {
       adminSection.style.display = 'block';
+    } else {
+      adminSection.style.display = 'none';
     }
+
     showSection(matchesSection);
     listenMatches();
   } else {
