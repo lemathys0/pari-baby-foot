@@ -1,12 +1,33 @@
-﻿<div id='auth'> ... </div>
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pari Baby-Foot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🏆 Pari Baby-Foot</h1>
+  
+  <div id="auth">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Mot de passe" />
+    <button id="registerBtn">S'inscrire</button>
+    <button id="loginBtn">Connexion</button>
+    <button id="logoutBtn" style="display:none;">Déconnexion</button>
+  </div>
 
-<div id='bet-section' style='display:none;'>
-  <h2>Parier sur un match</h2>
+  <div id="bet-section" style="display:none;">
+    <h2>Parier sur un match</h2>
+    <input type="text" id="team1" placeholder="Équipe 1" />
+    <input type="text" id="team2" placeholder="Équipe 2" />
+    <button id="addMatchBtn">Ajouter un match</button>
 
-  <input type='text' id='team1' placeholder='Équipe 1' />
-  <input type='text' id='team2' placeholder='Équipe 2' />
-  <button id='addMatchBtn'>Ajouter un match</button>
+    <h3>Matchs disponibles</h3>
+    <ul id="matches-list"></ul>
+  </div>
 
-  <h3>Matchs disponibles</h3>
-  <ul id='matches-list'></ul>
-</div>
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
