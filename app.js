@@ -331,18 +331,46 @@ function renderHistory(matches) {
   historyList.innerHTML = '';
   matches.forEach(match => {
     const li = document.createElement('li');
+    li.style.border = '1px solid #ccc';
+    li.style.padding = '8px';
+    li.style.marginBottom = '8px';
+    li.style.borderRadius = '5px';
+    li.style.maxWidth = '400px'; // limite la largeur max
+    li.style.wordWrap = 'break-word'; // couper les mots trop longs
+    li.style.backgroundColor = '#f9f9f9';
 
-    // Trouver le pari de l'utilisateur sur ce match
+    const displayMatch = document.createElement('div');
+    displayMatch.style.fontWeight = 'bold';
+    displayMatch.style.marginBottom = '4px';
+    displayMatch.style.whiteSpace = 'nowrap';
+    displayMatch.style.overflow = 'hidden';
+    displayMatch.style.textOverflow = 'ellipsis';
+
+    displayMatch.textContent = `${match.team1} vs ${match.team2}`;
+
+    const winnerDiv = document.createElement('div');
+    winnerDiv.innerHTML = `Gagnant : <em>${match.winner}</em>`;
+    winnerDiv.style.marginBottom = '6px';
+
+    li.appendChild(displayMatch);
+    li.appendChild(winnerDiv);
+
     const userBet = (match.bets || []).find(b => b.userId === currentUser.uid);
-    const won = userBet && userBet.prediction === match.winner;
-
-    li.innerHTML = `<strong>${match.team1}</strong> vs <strong>${match.team2}</strong> - Gagnant : <em>${match.winner}</em>`;
     if (userBet) {
-      li.innerHTML += `<br>Votre pari : ${userBet.prediction} avec ${userBet.stake} points - ${won ? '<span style="color:green;">Gagné !</span>' : '<span style="color:red;">Perdu</span>'}`;
+      const won = userBet.prediction === match.winner;
+      const betDiv = document.createElement('div');
+      betDiv.textContent = `Votre pari : ${userBet.prediction} avec ${userBet.stake} points - `;
+      const resultSpan = document.createElement('span');
+      resultSpan.textContent = won ? 'Gagné !' : 'Perdu';
+      resultSpan.style.color = won ? 'green' : 'red';
+      betDiv.appendChild(resultSpan);
+      li.appendChild(betDiv);
     }
+
     historyList.appendChild(li);
   });
 }
+
 
 onAuthStateChanged(auth, user => {
   currentUser = user;
