@@ -1,60 +1,79 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  background: linear-gradient(to right, #fceabb, #f8b500);
   color: #333;
   margin: 0;
   padding: 20px;
+  text-align: center;
 }
 
 h1 {
-  text-align: center;
-  color: #fff;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  font-size: 2.5em;
+  color: #ffffff;
+  background: #ff6f61;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#auth, #bet-section {
+  background-color: #ffffffcc;
+  margin: 30px auto;
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 input, select, button {
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 6px;
-  border: none;
-  font-size: 1em;
+  display: block;
   width: 100%;
-  max-width: 300px;
-  box-sizing: border-box;
+  margin: 10px 0;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1em;
 }
 
 button {
   background-color: #ff6f61;
   color: white;
+  border: none;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: 0.2s ease;
 }
 
 button:hover {
-  background-color: #ff3b2d;
+  background-color: #e85c50;
 }
 
-#matches-list li {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+#userPoints {
+  margin: 10px auto;
+  font-weight: bold;
+  font-size: 1.2em;
+  color: #444;
+}
+
+#bet-history {
+  list-style-type: none;
+  padding: 0;
+}
+
+#bet-history li {
+  background-color: #fff8e1;
+  border-left: 5px solid #ffca28;
+  margin-bottom: 10px;
   padding: 15px;
   border-radius: 10px;
-  margin-bottom: 15px;
+  text-align: left;
 }
 
-.bet-item {
-  margin-top: 8px;
-  font-size: 0.9em;
-  color: #555;
-}
+@media screen and (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
 
-.admin-btn {
-  background-color: #4caf50;
-  margin-left: 10px;
-  font-size: 0.85em;
-  padding: 6px 12px;
-  border-radius: 5px;
-}
-.admin-btn:hover {
-  background-color: #388e3c;
+  #auth, #bet-section {
+    max-width: 95%;
+  }
 }
