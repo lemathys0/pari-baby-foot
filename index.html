@@ -9,25 +9,42 @@
 <body>
   <h1>🏆 Pari Baby-Foot</h1>
 
+  <nav>
+    <button id="menuMatchesBtn">Matchs</button>
+    <button id="menuProfileBtn">Profil</button>
+    <button id="menuLeaderboardBtn">Classement</button>
+    <button id="logoutBtn" style="display:none;">Déconnexion</button>
+  </nav>
+
   <div id="auth">
     <input type="email" id="email" placeholder="Email" />
     <input type="password" id="password" placeholder="Mot de passe" />
     <button id="registerBtn">S'inscrire</button>
     <button id="loginBtn">Connexion</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-    <p id="userPoints" style="display:none;">Points : <span id="pointsValue">0</span></p>
   </div>
 
   <section id="matches-section" style="display:none;">
-    <h2>📋 Matchs disponibles</h2>
+    <h2>Pariez sur les matchs disponibles</h2>
     <ul id="matches-list"></ul>
 
-    <div id="admin-tools" style="margin-top: 30px;">
-      <h3>➕ Ajouter un match (admin)</h3>
+    <div id="addMatchDiv" style="display:none;">
+      <hr />
+      <h3>Ajouter un match (admin)</h3>
       <input type="text" id="team1" placeholder="Équipe 1" />
       <input type="text" id="team2" placeholder="Équipe 2" />
       <button id="addMatchBtn">Ajouter Match</button>
     </div>
+  </section>
+
+  <section id="profile-section" style="display:none;">
+    <h2>Profil</h2>
+    <p>Email : <span id="profileEmail"></span></p>
+    <p>Points : <span id="profilePoints"></span></p>
+  </section>
+
+  <section id="leaderboard-section" style="display:none;">
+    <h2>Classement des meilleurs joueurs</h2>
+    <ol id="leaderboardList"></ol>
   </section>
 
   <script type="module" src="firebase-config.js"></script>

@@ -1,10 +1,10 @@
+// app.js
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
 import {
   collection,
   addDoc,
@@ -13,9 +13,10 @@ import {
   doc,
   updateDoc,
   setDoc,
-  onSnapshot
+  onSnapshot,
+  query,
+  orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
 import { auth, db } from './firebase-config.js';
 
 const emailInput = document.getElementById('email');
@@ -25,31 +26,47 @@ const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const authDiv = document.getElementById('auth');
 
+const matchesSection = document.getElementById('matches-section');
+const profileSection = document.getElementById('profile-section');
+const rankingSection = document.getElementById('ranking-section');
+
+const navMatches = document.getElementById('nav-matches');
+const navProfile = document.getElementById('nav-profile');
+const navRanking = document.getElementById('nav-ranking');
+
 const team1Input = document.getElementById('team1');
 const team2Input = document.getElementById('team2');
 const addMatchBtn = document.getElementById('addMatchBtn');
 const matchesList = document.getElementById('matches-list');
-const matchesSection = document.getElementById('matches-section');
-const userPointsDisplay = document.getElementById('userPoints');
-const pointsValue = document.getElementById('pointsValue');
+const adminSection = document.getElementById('admin-section');
+
+const profileEmail = document.getElementById('profile-email');
+const profilePoints = document.getElementById('profile-points');
+const rankingList = document.getElementById('ranking-list');
 
 let currentUser = null;
 let currentUserData = null;
 
-// Enregistrement
+function showSection(section) {
+  matchesSection.style.display = 'none';
+  profileSection.style.display = 'none';
+  rankingSection.style.display = 'none';
+  section.style.display = 'block';
+}
+
+navMatches.addEventListener('click', () => showSection(matchesSection));
+navProfile.addEventListener('click', () => showSection(profileSection));
+navRanking.addEventListener('click', () => {
+  showSection(rankingSection);
+  updateRanking();
+});
+
 registerBtn.addEventListener('click', async () => {
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
-
-  if (!email || !password || password.length < 6) {
-    alert("Email invalide ou mot de passe trop court (min. 6 caractères).");
-    return;
-  }
-
+  const email = emailInput.value;
+  const password = passwordInput.value;
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
-
     const usersSnapshot = await getDocs(collection(db, 'users'));
     const isFirstUser = usersSnapshot.empty;
 
@@ -58,36 +75,26 @@ registerBtn.addEventListener('click', async () => {
       points: 50,
       isAdmin: isFirstUser
     });
-
-    alert('Inscription réussie. Vous avez reçu 50 points.');
+    alert('Inscription réussie !');
   } catch (error) {
-    alert('Erreur inscription : ' + error.message);
+    alert('Erreur: ' + error.message);
   }
 });
 
-// Connexion
 loginBtn.addEventListener('click', async () => {
   try {
     await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
   } catch (error) {
-    alert('Erreur connexion : ' + error.message);
+    alert('Erreur: ' + error.message);
   }
 });
 
-// Déconnexion
-logoutBtn.addEventListener('click', () => {
-  signOut(auth);
-});
+logoutBtn.addEventListener('click', () => signOut(auth));
 
-// Ajouter un match (admin)
 addMatchBtn.addEventListener('click', async () => {
   const team1 = team1Input.value.trim();
   const team2 = team2Input.value.trim();
-
-  if (!team1 || !team2) {
-    alert('Remplis les deux équipes');
-    return;
-  }
+  if (!team1 || !team2) return;
 
   await addDoc(collection(db, 'matches'), {
     team1,
@@ -95,72 +102,44 @@ addMatchBtn.addEventListener('click', async () => {
     status: 'open',
     bets: []
   });
-
-  team1Input.value = '';
-  team2Input.value = '';
 });
 
-// Affichage des matchs
 function renderMatches(matches) {
   matchesList.innerHTML = '';
-
   matches.forEach(match => {
     const li = document.createElement('li');
-    li.innerHTML = `
-      <strong>${match.team1}</strong> vs <strong>${match.team2}</strong><br/>
-      ${match.status === 'closed' ? '<em>Match terminé</em>' : ''}
-    `;
+    li.innerHTML = `<strong>${match.team1}</strong> vs <strong>${match.team2}</strong><br/>`;
 
     if (match.status === 'open') {
-      const betForm = document.createElement('div');
       const select = document.createElement('select');
-      select.innerHTML = `
-        <option value="${match.team1}">${match.team1}</option>
-        <option value="${match.team2}">${match.team2}</option>
-      `;
-      const inputStake = document.createElement('input');
-      inputStake.type = 'number';
-      inputStake.placeholder = 'Points';
-
-      const submitBtn = document.createElement('button');
-      submitBtn.textContent = 'Parier';
-      submitBtn.onclick = async () => {
+      select.innerHTML = `<option value="${match.team1}">${match.team1}</option><option value="${match.team2}">${match.team2}</option>`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.placeholder = 'Points';
+      const btn = document.createElement('button');
+      btn.textContent = 'Parier';
+      btn.onclick = async () => {
+        const stake = parseInt(input.value);
         const prediction = select.value;
-        const stake = parseInt(inputStake.value);
-
-        if (isNaN(stake) || stake <= 0) return;
-        if (currentUserData.points < stake) {
-          alert("Tu n'as pas assez de points !");
-          return;
+        if (stake > 0 && currentUserData.points >= stake) {
+          await updateDoc(doc(db, 'users', currentUser.uid), {
+            points: currentUserData.points - stake
+          });
+          const updatedBets = [...(match.bets || []), { userId: currentUser.uid, prediction, stake }];
+          await updateDoc(doc(db, 'matches', match.id), { bets: updatedBets });
         }
-
-        const updatedBets = [...(match.bets || []), {
-          userId: currentUser.uid,
-          prediction,
-          stake
-        }];
-
-        await updateDoc(doc(db, 'users', currentUser.uid), {
-          points: currentUserData.points - stake
-        });
-
-        await updateDoc(doc(db, 'matches', match.id), {
-          bets: updatedBets
-        });
       };
-
-      betForm.append(select, inputStake, submitBtn);
-      li.append(betForm);
+      li.append(select, input, btn);
+    } else {
+      li.innerHTML += '<em>Match terminé</em>';
     }
 
-    // Admin : Clôture
     if (match.status === 'open' && currentUserData?.isAdmin) {
       const closeBtn = document.createElement('button');
-      closeBtn.textContent = 'Clôturer ce pari';
+      closeBtn.textContent = 'Clôturer';
       closeBtn.onclick = async () => {
         const winner = prompt(`Qui a gagné ? (${match.team1} ou ${match.team2})`);
         if (![match.team1, match.team2].includes(winner)) return;
-
         const updatedMatch = { ...match, status: 'closed' };
         await updateDoc(doc(db, 'matches', match.id), updatedMatch);
 
@@ -170,20 +149,17 @@ function renderMatches(matches) {
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const data = userSnap.data();
-            await updateDoc(userRef, {
-              points: data.points + w.stake * 2
-            });
+            await updateDoc(userRef, { points: data.points + w.stake * 2 });
           }
         }
       };
-      li.append(closeBtn);
+      li.appendChild(closeBtn);
     }
 
     matchesList.appendChild(li);
   });
 }
 
-// Écoute en temps réel
 function listenMatches() {
   onSnapshot(collection(db, 'matches'), snapshot => {
     const matches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -191,27 +167,41 @@ function listenMatches() {
   });
 }
 
-// Auth state
+async function updateRanking() {
+  rankingList.innerHTML = '';
+  const q = query(collection(db, 'users'), orderBy('points', 'desc'));
+  const snapshot = await getDocs(q);
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const li = document.createElement('li');
+    li.textContent = `${data.email} - ${data.points} points`;
+    rankingList.appendChild(li);
+  });
+}
+
 onAuthStateChanged(auth, async user => {
   currentUser = user;
-
   if (user) {
     const docSnap = await getDoc(doc(db, 'users', user.uid));
     currentUserData = docSnap.exists() ? docSnap.data() : null;
 
     authDiv.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
-    userPointsDisplay.style.display = 'block';
-    matchesSection.style.display = 'block';
-    pointsValue.textContent = currentUserData?.points ?? 0;
+    profileEmail.textContent = currentUserData?.email ?? '';
+    profilePoints.textContent = currentUserData?.points ?? 0;
 
+    if (currentUserData?.isAdmin) {
+      adminSection.style.display = 'block';
+    }
+    showSection(matchesSection);
     listenMatches();
   } else {
     authDiv.style.display = 'block';
     logoutBtn.style.display = 'none';
-    userPointsDisplay.style.display = 'none';
-    matchesSection.style.display = 'none';
     matchesList.innerHTML = '';
-    currentUserData = null;
+    profileEmail.textContent = '';
+    profilePoints.textContent = '';
+    adminSection.style.display = 'none';
+    showSection(matchesSection);
   }
 });

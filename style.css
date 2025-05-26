@@ -1,79 +1,152 @@
+/* Reset basique */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #fceabb, #f8b500);
+  background: linear-gradient(135deg, #ffd54f, #ff8a65);
   color: #333;
-  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
-  text-align: center;
 }
 
 h1 {
-  font-size: 2.5em;
-  color: #ffffff;
-  background: #ff6f61;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-#auth, #bet-section {
-  background-color: #ffffffcc;
-  margin: 30px auto;
-  padding: 20px;
-  border-radius: 16px;
-  max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-input, select, button {
-  display: block;
+nav {
+  margin-bottom: 20px;
   width: 100%;
-  margin: 10px 0;
-  padding: 12px;
+  max-width: 600px;
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+nav button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #fff;
+  color: #ff7043;
+  font-weight: 600;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1em;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+nav button:hover {
+  background-color: #ff7043;
+  color: #fff;
+}
+
+#auth, #matches-section, #profile-section, #leaderboard-section {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"],
+select {
+  width: calc(100% - 22px);
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 2px solid #ff7043;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: #ffa726;
 }
 
 button {
-  background-color: #ff6f61;
+  padding: 10px 20px;
+  background-color: #ff7043;
   color: white;
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #e85c50;
+  background-color: #ff5722;
 }
 
-#userPoints {
-  margin: 10px auto;
-  font-weight: bold;
-  font-size: 1.2em;
-  color: #444;
+ul, ol {
+  list-style: none;
+  padding-left: 0;
 }
 
-#bet-history {
-  list-style-type: none;
-  padding: 0;
-}
-
-#bet-history li {
-  background-color: #fff8e1;
-  border-left: 5px solid #ffca28;
+#matches-list li,
+#leaderboardList li {
+  background-color: #fff3e0;
+  border: 1px solid #ffccbc;
+  border-radius: 10px;
   margin-bottom: 10px;
   padding: 15px;
-  border-radius: 10px;
-  text-align: left;
+  box-shadow: 1px 2px 5px rgba(0,0,0,0.1);
 }
 
-@media screen and (max-width: 600px) {
-  body {
-    padding: 10px;
-  }
+#matches-list li strong {
+  color: #e64a19;
+}
 
-  #auth, #bet-section {
-    max-width: 95%;
+#matches-list li em {
+  color: #757575;
+}
+
+#matches-list li button,
+#matches-list li select,
+#matches-list li input[type="number"] {
+  margin-top: 10px;
+  margin-right: 10px;
+}
+
+#matches-list li button {
+  font-size: 0.9rem;
+}
+
+#addMatchDiv input {
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+  nav {
+    flex-direction: column;
+  }
+  
+  nav button {
+    margin-bottom: 10px;
+    flex: unset;
   }
 }
