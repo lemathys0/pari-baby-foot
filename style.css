@@ -68,6 +68,7 @@ main {
   max-width: 800px;
 }
 
+/* Cartes générales */
 .card {
   background: rgba(255 255 255 / 0.15);
   padding: 1.2rem 1.5rem;
@@ -186,15 +187,24 @@ input[type="number"]::-webkit-outer-spin-button {
 
 
 /* Styles spécifiques à l'historique */
+#history-list {
+  width: 100%;
+  max-width: 800px; /* largeur du conteneur */
+  padding: 0;
+  margin: 0 auto;
+  list-style: none;
+}
+
 #history-list li {
-  max-width: 450px;        /* Limite la largeur pour éviter que ça déborde */
-  word-wrap: break-word;   /* Coupe les mots longs si besoin */
-  white-space: normal;     /* Permet le retour à la ligne */
+  width: 100%;               /* prend toute la largeur */
+  box-sizing: border-box;    /* padding inclus dans la largeur */
+  word-wrap: break-word;     
+  white-space: normal;       
   padding: 0.75rem 1rem;
   background: rgba(0,0,0,0.2);
   border-radius: 10px;
   margin-bottom: 0.75rem;
-  display: block;          /* Pour éviter l'usage de flex ici */
+  display: block;
   font-weight: 600;
   color: #f5f5f5;
 }
@@ -205,7 +215,7 @@ input[type="number"]::-webkit-outer-spin-button {
   color: inherit;
 }
 
-/* Optionnel : pour que le nom des équipes soit en gras et distinct */
+/* Pour que le nom des équipes soit en gras et distinct */
 #history-list li div:first-child {
   font-weight: 700;
   font-size: 1rem;
@@ -259,7 +269,7 @@ input[type="number"]::-webkit-outer-spin-button {
   cursor: default;
 }
 
-/* Optionnel : afficher le classement numéroté devant */
+/* Numérotation automatique */
 #ranking-list li::before {
   content: counter(ranking-counter);
   counter-increment: ranking-counter;
@@ -272,4 +282,3 @@ input[type="number"]::-webkit-outer-spin-button {
 #ranking-list {
   counter-reset: ranking-counter;
 }
-
