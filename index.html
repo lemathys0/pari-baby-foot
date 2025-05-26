@@ -15,18 +15,19 @@
     <button id="registerBtn">S'inscrire</button>
     <button id="loginBtn">Connexion</button>
     <button id="logoutBtn" style="display:none;">Déconnexion</button>
-    <p id="userPoints" style="display:none;">Points: <span id="pointsValue">0</span></p>
+    <p id="userPoints" style="display:none;">Points : <span id="pointsValue">0</span></p>
   </div>
 
   <section id="matches-section" style="display:none;">
-    <h2>Pariez sur les matchs disponibles</h2>
+    <h2>📋 Matchs disponibles</h2>
     <ul id="matches-list"></ul>
 
-    <hr />
-    <h3>Ajouter un match (admin)</h3>
-    <input type="text" id="team1" placeholder="Équipe 1" />
-    <input type="text" id="team2" placeholder="Équipe 2" />
-    <button id="addMatchBtn">Ajouter Match</button>
+    <div id="admin-tools" style="margin-top: 30px;">
+      <h3>➕ Ajouter un match (admin)</h3>
+      <input type="text" id="team1" placeholder="Équipe 1" />
+      <input type="text" id="team2" placeholder="Équipe 2" />
+      <button id="addMatchBtn">Ajouter Match</button>
+    </div>
   </section>
 
   <script type="module" src="firebase-config.js"></script>
