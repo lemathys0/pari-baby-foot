@@ -15,26 +15,57 @@ const betSection = document.getElementById('bet-section');
 const authDiv = document.getElementById('auth');
 
 registerBtn.addEventListener('click', async () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email) {
+    alert("L'email est requis");
+    return;
+  }
+  if (!password) {
+    alert("Le mot de passe est requis");
+    return;
+  }
+  if (password.length < 6) {
+    alert("Le mot de passe doit contenir au moins 6 caractères");
+    return;
+  }
+
   try {
-    await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    alert('Inscription réussie');
-  } catch (err) {
-    alert(err.message);
+    await createUserWithEmailAndPassword(auth, email, password);
+    alert('Inscription réussie !');
+  } catch (error) {
+    alert('Erreur : ' + error.message);
+    console.error(error);
   }
 });
 
 loginBtn.addEventListener('click', async () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    alert('Email et mot de passe requis pour la connexion');
+    return;
+  }
+
   try {
-    await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
-    alert('Connexion réussie');
-  } catch (err) {
-    alert(err.message);
+    await signInWithEmailAndPassword(auth, email, password);
+    alert('Connexion réussie !');
+  } catch (error) {
+    alert('Erreur : ' + error.message);
+    console.error(error);
   }
 });
 
 logoutBtn.addEventListener('click', async () => {
-  await signOut(auth);
-  alert('Déconnecté');
+  try {
+    await signOut(auth);
+    alert('Déconnecté');
+  } catch (error) {
+    alert('Erreur lors de la déconnexion : ' + error.message);
+    console.error(error);
+  }
 });
 
 onAuthStateChanged(auth, user => {
