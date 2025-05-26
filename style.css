@@ -1,16 +1,104 @@
+/* style.css */
 body {
-  font-family: sans-serif;
-  padding: 2rem;
-  max-width: 600px;
-  margin: auto;
-  background: #f3f3f3;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+  margin: 0;
+  padding: 20px;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
-input, button {
-  display: block;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
+
+h1 {
+  color: #FF6F61;
+  margin-bottom: 20px;
+}
+
+#auth, #bet-section {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  padding: 25px 40px;
+  width: 350px;
+  margin-bottom: 30px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"] {
   width: 100%;
+  padding: 10px 12px;
+  margin: 8px 0 15px 0;
+  border-radius: 8px;
+  border: 1.5px solid #FF6F61;
+  font-size: 16px;
+  transition: border-color 0.3s;
 }
-h1, h2, h3 {
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: #FF3B2F;
+  box-shadow: 0 0 8px #FF3B2F88;
+}
+
+button {
+  width: 100%;
+  background-color: #FF6F61;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 5px;
+}
+
+button:hover {
+  background-color: #FF3B2F;
+}
+
+#logoutBtn {
+  background-color: #555;
+}
+
+#logoutBtn:hover {
+  background-color: #222;
+}
+
+h2, h3 {
+  color: #FF3B2F;
+  margin-bottom: 10px;
   text-align: center;
+}
+
+#bet-history {
+  list-style: none;
+  padding-left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 2px solid #FF6F61;
+  margin-top: 15px;
+}
+
+#bet-history li {
+  background: #FFE1DC;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #6B1B11;
+}
+
+@media (max-width: 400px) {
+  #auth, #bet-section {
+    width: 90vw;
+    padding: 15px 20px;
+  }
 }
