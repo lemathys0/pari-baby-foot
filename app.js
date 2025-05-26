@@ -58,13 +58,13 @@ function showSection(section) {
   rankingSection.style.display = 'none';
   historySection.style.display = 'none';
 
-  // Supprimer active de tous les boutons
+  // Supprimer la classe active de tous les boutons
   [menuMatchesBtn, menuProfileBtn, menuLeaderboardBtn, menuHistoryBtn].forEach(btn => btn.classList.remove('active'));
 
-  // Afficher celle demandée
+  // Afficher la section demandée
   section.style.display = 'block';
 
-  // Ajouter active au bouton correspondant
+  // Ajouter la classe active au bouton correspondant
   if (section === matchesSection) menuMatchesBtn.classList.add('active');
   else if (section === profileSection) menuProfileBtn.classList.add('active');
   else if (section === rankingSection) menuLeaderboardBtn.classList.add('active');
@@ -125,8 +125,14 @@ addMatchBtn.addEventListener('click', async () => {
   const team1 = team1Input.value.trim();
   const team2 = team2Input.value.trim();
   const odds = parseFloat(oddsInput.value);
-  if (!team1 || !team2 || !odds || odds < 1) {
-    alert("Merci de renseigner deux équipes et une cote valide (>= 1).");
+
+  if (!team1 || !team2) {
+    alert("Merci de renseigner deux équipes.");
+    return;
+  }
+
+  if (isNaN(odds) || odds < 1) {
+    alert("Merci de renseigner une cote valide (nombre supérieur ou égal à 1).");
     return;
   }
 
@@ -151,10 +157,13 @@ function renderMatches(matches) {
   matches.forEach(match => {
     const li = document.createElement('li');
 
+    // Sécuriser l'affichage de la cote
+    const oddsText = (typeof match.odds === 'number' && !isNaN(match.odds)) ? match.odds.toFixed(2) : 'N/A';
+
     li.innerHTML = `
       <div>
         <strong>${match.team1}</strong> vs <strong>${match.team2}</strong>
-        <span class="odds">Cote : ${match.odds.toFixed(2)}</span>
+        <span class="odds">Cote : ${oddsText}</span>
       </div>
     `;
 
@@ -169,6 +178,7 @@ function renderMatches(matches) {
       input.min = '1';
       input.placeholder = 'Points à parier';
       input.style.width = '90px';
+
       const btn = document.createElement('button');
       btn.textContent = 'Parier';
       btn.onclick = async () => {
